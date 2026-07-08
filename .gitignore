@@ -1,0 +1,9 @@
+# Local scratch — not part of the image build (the build downloads its own cpanfile)
+build_log.txt
+cpanfile
+
+# Local editor/OS cruft
+.DS_Store
+
+# Local Claude Code settings
+/.claude/

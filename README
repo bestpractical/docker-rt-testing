@@ -1,0 +1,82 @@
+This repo defines a base Docker image to use for testing Request Tracker
+(RT) and its dependencies. It:
+
+* installs required C libraries and build tools from a distribution
+
+* builds Perl from source and runs its tests
+
+* installs cpm and uses it to install most of RT's dependencies, and run their tests
+
+After you build this image, you can use it to:
+
+* run the test suite for RT and its extensions (the Dockerfile and
+  GitHub Actions in the RT repository provides examples of this)
+
+* deploy the stack of dependencies to other hosts running the same
+  distribution and architecture, to save build time while maintaining
+  confidence that it has all passed testing
+
+To help you tailor the image to versions of Perl and RT you're targeting,
+and any future deployments you plan to do from that, you can pass build
+arguments to control what is built inside of it. The available arguments
+are:
+
+* CPANFILE: The URL to RT's cpanfile. The Dockerfile runs cpm to install
+  most of the modules named in this file, with some additional parsing to
+  select most optional features. The default is to use the cpanfile from the
+  current stable RT release available on GitHub. You can use a different URL
+  to use the cpanfile from a different RT version (e.g., replace `stable` in
+  the default URL with a different tag name).
+
+* CPM: The URL to the single-file script download published by cpm. You
+  should only need to set this if cpm moves or if you can't access GitHub.
+
+* PERL_VERSION: The version of Perl that is built, tested, and installed in
+  the image, written in the same format used in the source releases, like
+  `5.34.0`. The default is a release that was recently stable last time we
+  updated the Dockerfile.
+
+* PERL_CONFIGURE: A string of options passed the Perl's configure script
+  during the build process. The default is `-des`, which gets you a default
+  build without any interaction. You could change this to set specific
+  defines, turn on experimental features, etc.
+
+  Don't specify `-Dprefix` here. For that, use:
+
+* PERL_PREFIX: The full path where Perl will be installed inside the
+  container. Default is `/opt/perl-$PERL_VERSION`. You could change this is
+  if you wanted to use a different path for deployments out of the image.
+
+For routine builds, the only argument you're expected to set is
+PERL_VERSION, which you should set to a recent release.
+
+If you specifically want to test older or development versions of Perl
+and/or RT, you can do that by setting PERL_VERSION and CPANFILE,
+respectively. Testing development versions of Perl may require setting
+PERL_CONFIGURE as well.
+
+Because it is oriented towards testing and broader deployment, this Docker
+image contains a relatively "maximal" set of dependencies. It installs all
+of the modules required to support RT's tests, development features, and
+most of its databases and optional features. If you wanted to run RT in
+Docker in production, you would probably prefer to be more selective about
+what you install, and build a slimmer image.
+
+When you run this container, by default it prints a list all the Perl
+modules it contains, along with their versions, in the CPAN "autobundle"
+format. This is primarily intended to provide an easy way to compare the
+main differences in built images over time. You could also use it to deploy
+the exact same set of modules on a different distribution or architecture if
+needed.
+
+Instructions for updating:
+
+Build the docker image:
+
+docker build -t bpssysadmin/rt-base-debian:RT-5.0.3-buster-20230130 .
+
+Push the docker image:
+
+docker push bpssysadmin/rt-base-debian:RT-5.0.4-buster-20230703
+
+https://docs.docker.com/docker-hub/repos/create/
