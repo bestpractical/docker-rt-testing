@@ -69,14 +69,86 @@ main differences in built images over time. You could also use it to deploy
 the exact same set of modules on a different distribution or architecture if
 needed.
 
-Instructions for updating:
+Building and publishing the image
+==================================
 
-Build the docker image:
+Images must be linux/amd64 to run in RT's CI: the runners are amd64, and this
+image bundles amd64-only Oracle Instant Client and geckodriver binaries. The
+primary way to build and publish is the GitHub Actions workflow in this repo,
+which runs on native amd64 runners, so the architecture is always correct no
+matter what kind of computer you build from.
 
-docker build -t bpssysadmin/rt-base-debian:RT-5.0.3-buster-20230130 .
+When to build
 
-Push the docker image:
+  There are two reasons to build a new image:
 
-docker push bpssysadmin/rt-base-debian:RT-5.0.4-buster-20230703
+  * To refresh dependencies. Each build pulls the latest available Debian
+    packages and the latest CPAN module versions, and rebuilds and re-tests the
+    Perl version you specify. So running the workflow with no source change
+    produces an up-to-date snapshot of the dependency stack that has passed its
+    tests. Do this periodically, or to check whether newer module versions still
+    pass.
+
+  * To make a change. Anything structural -- adding a system package or Perl
+    module, working around a new test failure, pinning or skipping a module, or
+    moving to a new Debian release -- means editing the Dockerfile first. A few
+    changes need no file edit and can be set from the workflow inputs instead: a
+    different Perl version, cpanfile URL, or distro codename.
+
+  Either way you get a new, date-stamped tag; nothing is overwritten.
+
+Publishing a new image (primary path)
+
+  If your change requires editing the Dockerfile, commit and push it first: the
+  workflow builds the committed repository, not your local files. You can push
+  to a branch and run the workflow from that branch to test before merging to
+  main. A dependency-refresh build needs no edit -- skip straight to step 1.
+
+  1. In GitHub, open the "Actions" tab, select the "Build and push base image"
+     workflow, and click "Run workflow".
+
+  2. Fill in the inputs:
+       rt_version    representative RT version for the tag, e.g. 6.0.3
+       distro        Debian codename, e.g. bullseye
+       perl_version  Perl version to build (default 5.34.3)
+       cpanfile      optional cpanfile URL override (blank = Dockerfile default)
+       use_cache     leave unchecked for a standard build (runs all tests);
+                     check only for faster debugging re-runs
+
+     The image is tagged
+     bpssysadmin/rt-base-debian:RT-<rt_version>-<distro>-<YYYYMMDD>.
+
+  3. Watch the run in the Actions tab (or "gh run watch" from the CLI). The
+     final steps verify the pushed image is linux/amd64 and print the tag.
+
+Making the image live in RT's CI
+
+  Publishing the image does nothing on its own. To use it, bump the pinned tag
+  in RT's own Dockerfile:
+
+      FROM bpssysadmin/rt-base-debian:RT-<rt_version>-<distro>-<YYYYMMDD>
+
+  RT's CI then builds RT on top of the new base image.
+
+Building locally (fallback)
+
+  To reproduce a single build failure without waiting on CI, build locally. You
+  MUST target linux/amd64 and push in one step; a separate "docker push" can
+  publish a stale, wrong-architecture image:
+
+      docker buildx build --platform linux/amd64 --push \
+          -t bpssysadmin/rt-base-debian:<tag> .
+      docker buildx imagetools inspect bpssysadmin/rt-base-debian:<tag>
+
+  The second command should report linux/amd64. On Apple Silicon this build runs
+  under QEMU emulation.
+
+One-time setup (admins)
+
+  The workflow authenticates to Docker Hub with a Docker Hub access token
+  (Read/Write) stored as Actions secrets DOCKERHUB_USERNAME and DOCKERHUB_TOKEN,
+  ideally at the bestpractical organization level. Teammates only need write
+  access to this repo to run the workflow; no credentials are needed on their
+  own machines.
 
 https://docs.docker.com/docker-hub/repos/create/
