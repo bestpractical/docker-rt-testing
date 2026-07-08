@@ -7,3 +7,6 @@ cpanfile
 
 # Local Claude Code settings
 /.claude/
+
+# Ignore local docs. Published docs are in the README.
+/docs/

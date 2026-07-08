@@ -36,18 +36,30 @@ repo's `Dockerfile`. Building/pushing here is not enough on its own.
   don't drop or pin something in a way that breaks the other line. (`CPANFILE` defaults to
   `6.0-trunk`, but the installed stack must still satisfy RT 5's tests.)
 
-## Build and push
+## Build and publish
+
+The primary path is the **GitHub Actions workflow** `.github/workflows/build-push.yml`
+("Build and push base image", triggered manually via `workflow_dispatch`). It builds on
+native amd64 runners and pushes to Docker Hub — so the image is always `linux/amd64`
+regardless of the host. See `README` ("Building and publishing the image") for the full
+hand-off procedure and the one-time Docker Hub secret setup.
+
+Two reasons to build: **refresh** (run the workflow with no source change to pull the latest
+Debian packages and CPAN module versions — a fresh, tested dependency snapshot) or **change**
+(edit the `Dockerfile` for anything structural — new package, module pin/skip, test workaround,
+new Debian release — or vary `PERL_VERSION`/`CPANFILE`/`distro` from the workflow inputs). The
+workflow builds the **committed** repo, so push `Dockerfile` changes before dispatching (you can
+dispatch from a branch to test before merging). Either way you get a new date-stamped tag.
+
+Local builds are a **fallback** for reproducing a single failing step. You MUST build for
+amd64 and push in one step, or a separate `docker push` can publish a stale wrong-arch image:
 
 ```bash
-# Build (tag convention: RT-<rtversion>-<distro>-<yyyymmdd>)
-docker build -t bpssysadmin/rt-base-debian:RT-6.0.0-bullseye-20260708 .
-
-# Override the Perl version (the only arg you normally set)
-docker build --build-arg PERL_VERSION=5.34.3 -t <tag> .
-
-# Push
-docker push bpssysadmin/rt-base-debian:<tag>
+docker buildx build --platform linux/amd64 --push -t bpssysadmin/rt-base-debian:<tag> .
+docker buildx imagetools inspect bpssysadmin/rt-base-debian:<tag>   # confirm linux/amd64
 ```
+
+On Apple Silicon the local build runs under slow QEMU emulation.
 
 Running the image (default `CMD`) prints all installed Perl modules and versions in CPAN
 autobundle format — used to diff dependency sets between builds.
