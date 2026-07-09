@@ -155,6 +155,10 @@ RUN cpm install --global --no-prebuilt --with-all --show-build-log-on-failure WW
 # Install Playwright Perl module
 RUN cpm install --global --no-prebuilt --with-all --show-build-log-on-failure Playwright
 
+# Install Module::Runtime before the bulk step below. MooX::late 0.100 uses it
+# (MooX/late.pm line 12) but does not declare it as a prerequisite.
+RUN cpm install --global --no-prebuilt --with-all --show-build-log-on-failure Module::Runtime
+
 RUN cd /tmp \
  && curl --fail --location --compressed -o cpanfile "$CPANFILE" \
  # 1. Find all the features named in RT's cpanfile.
