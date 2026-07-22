@@ -46,10 +46,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev \
 #RUN apt-get install -y libaio1 alien
 RUN mkdir -p /usr/local/src/oracle-instantclient \
  cd /usr/local/src/oracle-instantclient \
- && curl -sSL --output oracle-instantclient-basic-23.26.2.0.0-2.el8.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient23/x86_64/getPackage/oracle-instantclient-basic-23.26.2.0.0-2.el8.x86_64.rpm \
- && curl -sSL --output oracle-instantclient-devel-23.26.2.0.0-2.el8.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient23/x86_64/getPackage/oracle-instantclient-devel-23.26.2.0.0-2.el8.x86_64.rpm \
- && curl -sSL --output oracle-instantclient-sqlplus-23.26.2.0.0-2.el8.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient23/x86_64/getPackage/oracle-instantclient-sqlplus-23.26.2.0.0-2.el8.x86_64.rpm \
+ && curl -sSL --output oracle-instantclient-basic-23.26.2.0.0-2.el10.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL10/oracle/instantclient23/x86_64/getPackage/oracle-instantclient-basic-23.26.2.0.0-2.el10.x86_64.rpm \
+ && curl -sSL --output oracle-instantclient-devel-23.26.2.0.0-2.el10.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL10/oracle/instantclient23/x86_64/getPackage/oracle-instantclient-devel-23.26.2.0.0-2.el10.x86_64.rpm \
+ && curl -sSL --output oracle-instantclient-sqlplus-23.26.2.0.0-2.el10.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL10/oracle/instantclient23/x86_64/getPackage/oracle-instantclient-sqlplus-23.26.2.0.0-2.el10.x86_64.rpm \
  && alien -i --scripts oracle-instantclient*.rpm \
+ # Oracle instantclient is a prebuilt el10 binary linked against libaio.so.1.
+ # Debian's t64 transition (trixie) renamed the library package to libaio1t64,
+ # which ships libaio.so.1t64 -- there is no longer a libaio.so.1. Provide a
+ # compatibility symlink so DBD::Oracle can load. This is safe: on amd64 time_t
+ # was already 64-bit, so the t64 rename is an ABI no-op.
+ && ln -sf /usr/lib/x86_64-linux-gnu/libaio.so.1t64 /usr/lib/x86_64-linux-gnu/libaio.so.1 \
+ && ldconfig \
  && cd /usr/local/src \
  && rm -rf /usr/local/src/oracle-instantclient
 
