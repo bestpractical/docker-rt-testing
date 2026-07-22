@@ -110,6 +110,14 @@ RUN mkdir -p /opt/playwright-perl \
  && npx playwright install chromium firefox \
  && npx playwright install-deps
 
+# fontconfig 2.15.0 (and newer) validates caches by directory mtime at nanosecond
+# precision, but Docker layers (tar) truncate mtimes to whole seconds, so the
+# image cache looks stale at runtime and fontconfig tries to regenerate it.
+# Apache + mod_fcgid can't write there, causing test failures in graph tests,
+# specifically t/security/CVE-2011-5092-graph-links.t, with the error message
+# "Fontconfig error: No writable cache directories"
+RUN chmod 0777 /var/cache/fontconfig
+
 RUN cd /usr/local/src \
  && curl --fail --location "https://www.cpan.org/src/5.0/perl-$PERL_VERSION.tar.gz" \
   | tar -xz \
