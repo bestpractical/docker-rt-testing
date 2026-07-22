@@ -1,4 +1,4 @@
-FROM debian:bullseye-slim
+FROM debian:trixie-slim
 
 LABEL maintainer="Best Practical Solutions <contact@bestpractical.com>"
 
@@ -32,11 +32,11 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     chromium \
     firefox-esr \
     lsof \
-    libaio1 \
+    libaio1t64 \
     alien
 # && rm -rf /var/lib/apt/lists/*
 
-# Install PostgreSQL repo for client libraries for 16
+# Install PostgreSQL repo for the latest client libraries (libpq)
 RUN apt-get install -y postgresql-common
 RUN /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
 RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev \
@@ -46,9 +46,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev \
 #RUN apt-get install -y libaio1 alien
 RUN mkdir -p /usr/local/src/oracle-instantclient \
  cd /usr/local/src/oracle-instantclient \
- && curl -sSL --output oracle-instantclient-basic-23.9.0.25.07-1.el8.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient23/x86_64/getPackage/oracle-instantclient-basic-23.9.0.25.07-1.el8.x86_64.rpm \
- && curl -sSL --output oracle-instantclient-devel-23.9.0.25.07-1.el8.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient23/x86_64/getPackage/oracle-instantclient-devel-23.9.0.25.07-1.el8.x86_64.rpm \
- && curl -sSL --output oracle-instantclient-sqlplus-23.9.0.25.07-1.el8.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient23/x86_64/getPackage/oracle-instantclient-sqlplus-23.9.0.25.07-1.el8.x86_64.rpm \
+ && curl -sSL --output oracle-instantclient-basic-23.26.2.0.0-2.el8.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient23/x86_64/getPackage/oracle-instantclient-basic-23.26.2.0.0-2.el8.x86_64.rpm \
+ && curl -sSL --output oracle-instantclient-devel-23.26.2.0.0-2.el8.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient23/x86_64/getPackage/oracle-instantclient-devel-23.26.2.0.0-2.el8.x86_64.rpm \
+ && curl -sSL --output oracle-instantclient-sqlplus-23.26.2.0.0-2.el8.x86_64.rpm https://yum.oracle.com/repo/OracleLinux/OL8/oracle/instantclient23/x86_64/getPackage/oracle-instantclient-sqlplus-23.26.2.0.0-2.el8.x86_64.rpm \
  && alien -i --scripts oracle-instantclient*.rpm \
  && cd /usr/local/src \
  && rm -rf /usr/local/src/oracle-instantclient
@@ -59,7 +59,7 @@ ENV ORACLE_HOME=/usr/lib/oracle/23/client64 \
 # Install geckodriver for dashboard email tests
 RUN mkdir -p /usr/local/src/geckodriver \
  cd /usr/local/src/geckodriver \
- && curl -sSL https://github.com/mozilla/geckodriver/releases/download/v0.36.0/geckodriver-v0.36.0-linux64.tar.gz | tar xz \
+ && curl -sSL https://github.com/mozilla/geckodriver/releases/download/v0.37.1/geckodriver-v0.37.1-linux64.tar.gz | tar xz \
  && cp geckodriver /usr/local/bin \
  && cd /usr/local/src \
  && rm -rf /usr/local/src/geckodriver
