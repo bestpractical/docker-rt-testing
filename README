@@ -69,6 +69,23 @@ main differences in built images over time. You could also use it to deploy
 the exact same set of modules on a different distribution or architecture if
 needed.
 
+Branch model
+============
+
+Each Debian release has its own long-lived branch, which sets the base image
+in its Dockerfile (FROM debian:<distro>-slim). This is how distro variants are
+maintained, not through build arguments in a single branch.
+
+* main is the version we were using when the repo was created and just happens
+  to be Debian 11, bullseye. For all new distros, look for a branch with that named
+  version.
+
+* To move to a newer Debian, cut a new per-distro branch for it (for example,
+  debian-trixie), get its image building and passing RT's test suite.
+
+* GitHub runs based on the workflow file in main. If we need to make changes there,
+  we can update those files and push. Branches should then use the new workflow file.
+
 Building and publishing the image
 ==================================
 

@@ -10,3 +10,5 @@ cpanfile
 
 # Ignore local docs. Published docs are in the README.
 /docs/
+
+CLAUDE.md
