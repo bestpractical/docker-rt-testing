@@ -27,6 +27,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     libgd-dev \
     libmariadb-dev \
     libmariadb-dev-compat \
+    libqrencode-dev \
     libssl-dev \
     libz-dev \
     chromium \
