@@ -4,7 +4,7 @@ LABEL maintainer="Best Practical Solutions <contact@bestpractical.com>"
 
 ARG CPANFILE=https://raw.githubusercontent.com/bestpractical/rt/6.0-trunk/etc/cpanfile
 ARG CPM=https://raw.githubusercontent.com/skaji/cpm/main/cpm
-ARG PERL_VERSION=5.34.3
+ARG PERL_VERSION=5.42.3
 ARG PERL_CONFIGURE="-des"
 ARG PERL_PREFIX="/opt/perl-$PERL_VERSION"
 

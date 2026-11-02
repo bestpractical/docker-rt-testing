@@ -127,7 +127,7 @@ Publishing a new image (primary path)
   2. Fill in the inputs:
        rt_version    representative RT version for the tag, e.g. 6.0.3
        distro        Debian codename, e.g. bullseye
-       perl_version  Perl version to build (default 5.34.3)
+       perl_version  Perl version to build (default 5.42.3)
        cpanfile      optional cpanfile URL override (blank = Dockerfile default)
        use_cache     leave unchecked for a standard build (runs all tests);
                      check only for faster debugging re-runs
